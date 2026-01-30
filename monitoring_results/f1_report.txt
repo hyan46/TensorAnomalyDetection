@@ -4,20 +4,20 @@ Settings: n_train=200, n_test_normal=50, n_test_anomaly=50, img_size=(32, 32), a
 
 Scenario: Symmetric
 ----------------------------------------
-  UPCA / Location:  F1=0.9901  Precision=0.9804  Recall=1.0000
-  UPCA / Area:  F1=0.9901  Precision=0.9804  Recall=1.0000
-  MPCA / Location:  F1=1.0000  Precision=1.0000  Recall=1.0000
-  MPCA / Area:  F1=1.0000  Precision=1.0000  Recall=1.0000
-  TROD / Location:  F1=0.9901  Precision=0.9804  Recall=1.0000
-  TROD / Area:  F1=0.9901  Precision=0.9804  Recall=1.0000
+  UPCA / Location:  F1=1.0000  Precision=1.0000  Recall=1.0000
+  UPCA / Area:  F1=1.0000  Precision=1.0000  Recall=1.0000
+  Tucker (MPCA) / Location:  F1=0.9901  Precision=0.9804  Recall=1.0000
+  Tucker (MPCA) / Area:  F1=0.9901  Precision=0.9804  Recall=1.0000
+  CP (TROD) / Location:  F1=0.9901  Precision=0.9804  Recall=1.0000
+  CP (TROD) / Area:  F1=0.9901  Precision=0.9804  Recall=1.0000
 
 Scenario: Asymmetric
 ----------------------------------------
   UPCA / Location:  F1=1.0000  Precision=1.0000  Recall=1.0000
-  UPCA / Area:  F1=0.9691  Precision=1.0000  Recall=0.9400
-  MPCA / Location:  F1=1.0000  Precision=1.0000  Recall=1.0000
-  MPCA / Area:  F1=0.9899  Precision=1.0000  Recall=0.9800
-  TROD / Location:  F1=1.0000  Precision=1.0000  Recall=1.0000
-  TROD / Area:  F1=0.3607  Precision=1.0000  Recall=0.2200
+  UPCA / Area:  F1=0.9247  Precision=1.0000  Recall=0.8600
+  Tucker (MPCA) / Location:  F1=1.0000  Precision=1.0000  Recall=1.0000
+  Tucker (MPCA) / Area:  F1=0.9899  Precision=1.0000  Recall=0.9800
+  CP (TROD) / Location:  F1=1.0000  Precision=1.0000  Recall=1.0000
+  CP (TROD) / Area:  F1=0.5075  Precision=1.0000  Recall=0.3400
 
 (Alarm = T² > UCL or Q > UCL; label 1 = anomaly.)

@@ -18,7 +18,7 @@ _ROOT = os.path.dirname(_SCRIPT_DIR)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from tensor_monitoring import UPCAControlChart, MPCAControlChart, TRODControlChart
+from tensor_monitoring import UPCAControlChart, TuckerControlChart, CPControlChart
 from sklearn.metrics import f1_score, precision_score, recall_score
 
 
@@ -96,12 +96,18 @@ def _plot_control_charts(t2_stats, q_stats, ucl_t2, ucl_q, title, filename):
     plt.close()
 
 
+def _safe_filename(name):
+    """Turn display name into filename-safe string, e.g. 'Tucker (MPCA)' -> 'Tucker_MPCA'."""
+    return name.replace(" ", "_").replace("(", "").replace(")", "")
+
+
 def _evaluate_model(model, X_test, y_true, model_name, scenario_name, output_dir):
     t0 = time.time()
     t2_alarm, q_alarm, t2_stats, q_stats = model.predict(X_test)
     elapsed = time.time() - t0
     any_alarm = t2_alarm | q_alarm
-    plot_path = os.path.join(output_dir, f"{scenario_name}_{model_name}_chart.png")
+    safe_name = _safe_filename(model_name)
+    plot_path = os.path.join(output_dir, f"{scenario_name}_{safe_name}_chart.png")
     _plot_control_charts(t2_stats, q_stats, model.ucl_t2_, model.ucl_q_, f"{model_name} on {scenario_name}", plot_path)
     return {
         "F1": f1_score(y_true, any_alarm, zero_division=0),
@@ -150,8 +156,8 @@ def run_simulation(write_report=True):
 
         models = {
             "UPCA": UPCAControlChart(n_components=5, alpha=alpha),
-            "MPCA": MPCAControlChart(rank=(4, 4, 3), alpha=alpha),
-            "TROD": TRODControlChart(rank=5, alpha=alpha),
+            "Tucker (MPCA)": TuckerControlChart(rank=(4, 4, 3), alpha=alpha),
+            "CP (TROD)": CPControlChart(rank=5, alpha=alpha),
         }
 
         results = {}

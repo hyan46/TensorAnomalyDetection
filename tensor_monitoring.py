@@ -4,8 +4,8 @@ Tensor-based process monitoring via low-rank decomposition (Yan et al., IEEE TAS
 Supports tensors of any order: X shape (N, d1, d2, ..., d_m) with sample mode first.
 
 - UPCA: unfold each sample to vector, PCA; monitor T² and Q.
-- MPCA: Tucker on (d1, ..., d_m, N); projection factors per mode; monitor core features and Q.
-- TROD: CP on (d1, ..., d_m, N); spatial rank-one factors; monitor sample weights and Q.
+- Tucker (MPCA): Tucker on (d1, ..., d_m, N); projection factors per mode; monitor core features and Q.
+- CP (TROD): CP on (d1, ..., d_m, N); spatial rank-one factors; monitor sample weights and Q.
 
 Control limits: empirical (1-alpha) percentiles; alpha≈0.005 for in-control ARL ≈ 200.
 """
@@ -109,8 +109,8 @@ class UPCAControlChart(BaseTensorControlChart):
         
         return features, spe
 
-class MPCAControlChart(BaseTensorControlChart):
-    """MPCA: Tucker on (d1, ..., d_m, N); one projection matrix per mode. Any order (N, d1, ..., d_m)."""
+class TuckerControlChart(BaseTensorControlChart):
+    """Tucker (MPCA): Tucker on (d1, ..., d_m, N); one projection matrix per mode. Any order (N, d1, ..., d_m)."""
 
     def __init__(self, rank, alpha=0.01, centered=False):
         super().__init__(alpha=alpha)
@@ -178,8 +178,8 @@ class MPCAControlChart(BaseTensorControlChart):
             residuals.append(float(np.sum(res ** 2)))
         return np.array(features), np.array(residuals)
 
-class TRODControlChart(BaseTensorControlChart):
-    """TROD: CP on (d1, ..., d_m, N); shared spatial rank-one factors; features = sample weights. Any order."""
+class CPControlChart(BaseTensorControlChart):
+    """CP (TROD): CP on (d1, ..., d_m, N); shared spatial rank-one factors; features = sample weights. Any order."""
 
     def __init__(self, rank, alpha=0.01):
         super().__init__(alpha=alpha)

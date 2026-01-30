@@ -27,7 +27,7 @@ Reference implementation and reproduction materials for the paper:
 
 ## Abstract
 
-Image and video sensors are increasingly used in process monitoring. Existing techniques often fail to fully use the information in color images due to high dimensionality and complex correlation (temporal, spatial, spectral). This work models image data as tensors and uses low-rank tensor decomposition (UPCA, MPCA, TROD) to extract monitoring features, then applies multivariate control charts (T² and Q). The paper establishes relationships between Tucker/MPCA and CP/TROD and compares methods on symmetric/asymmetric image simulations and a steel tube flame monitoring case study.
+Image and video sensors are increasingly used in process monitoring. Existing techniques often fail to fully use the information in color images due to high dimensionality and complex correlation (temporal, spatial, spectral). This work models image data as tensors and uses low-rank tensor decomposition (UPCA, Tucker (MPCA), CP (TROD)) to extract monitoring features, then applies multivariate control charts (T² and Q). The paper establishes relationships between Tucker/MPCA and CP/TROD and compares methods on symmetric/asymmetric image simulations and a steel tube flame monitoring case study.
 
 ---
 
@@ -46,27 +46,27 @@ Requirements: `numpy`, `scikit-learn`, `tensorly`, `matplotlib`.
 | Method | Description |
 |--------|-------------|
 | **UPCA** | Unfolded PCA: unfold tensor to vector, PCA, then T² and Q charts. |
-| **MPCA** | Multilinear PCA (Tucker): projection per mode; monitor core features and residuals. |
-| **TROD** | Tensor rank-one decomposition (CP): shared rank-one factors; monitor weights and residuals. |
+| **Tucker (MPCA)** | Multilinear PCA (Tucker): projection per mode; monitor core features and residuals. |
+| **CP (TROD)** | Tensor rank-one decomposition (CP): shared rank-one factors; monitor weights and residuals. |
 
 All support tensors of shape `(N, d1, d2, ..., d_m)` (e.g. `(N, Height, Width, Channels)` for RGB images). Control limits use empirical \((1-\alpha)\) percentiles; \(\alpha \approx 0.005\) targets in-control ARL ≈ 200.
 
 ### Quick usage
 
 ```python
-from tensor_monitoring import UPCAControlChart, MPCAControlChart, TRODControlChart
+from tensor_monitoring import UPCAControlChart, TuckerControlChart, CPControlChart
 
 # Example: UPCA
 model = UPCAControlChart(n_components=5, alpha=0.005)
 model.fit(X_train)  # (N, H, W, C)
 t2_alarm, q_alarm, t2_stats, q_stats = model.predict(X_test)
 
-# MPCA (rank per mode)
-model = MPCAControlChart(rank=(4, 4, 3), alpha=0.005)
+# Tucker (MPCA) — rank per mode
+model = TuckerControlChart(rank=(4, 4, 3), alpha=0.005)
 model.fit(X_train)
 
-# TROD (number of rank-one components)
-model = TRODControlChart(rank=5, alpha=0.005)
+# CP (TROD) — number of rank-one components
+model = CPControlChart(rank=5, alpha=0.005)
 model.fit(X_train)
 ```
 
@@ -90,10 +90,25 @@ Initial reproduction results follow the paper’s setup: symmetric (single circl
 
 ### Sample images
 
-| Scenario    | Training | Location shift | Area change |
-|------------|----------|----------------|-------------|
-| Symmetric  | [`Symmetric_train.png`](monitoring_results/Symmetric_train.png) | [`Symmetric_loc.png`](monitoring_results/Symmetric_loc.png) | [`Symmetric_area.png`](monitoring_results/Symmetric_area.png) |
-| Asymmetric | [`Asymmetric_train.png`](monitoring_results/Asymmetric_train.png) | [`Asymmetric_loc.png`](monitoring_results/Asymmetric_loc.png) | [`Asymmetric_area.png`](monitoring_results/Asymmetric_area.png) |
+**Symmetric — training samples**
+
+![Symmetric training](monitoring_results/Symmetric_train.png)
+
+**Asymmetric — training samples**
+
+![Asymmetric training](monitoring_results/Asymmetric_train.png)
+
+**Location shift (out-of-control)**
+
+| Symmetric | Asymmetric |
+|-----------|------------|
+| ![Symmetric location](monitoring_results/Symmetric_loc.png) | ![Asymmetric location](monitoring_results/Asymmetric_loc.png) |
+
+**Area change (out-of-control)**
+
+| Symmetric | Asymmetric |
+|-----------|------------|
+| ![Symmetric area](monitoring_results/Symmetric_area.png) | ![Asymmetric area](monitoring_results/Asymmetric_area.png) |
 
 ### Detection performance (F1 / Precision / Recall)
 
@@ -104,31 +119,34 @@ From [`monitoring_results/f1_report.txt`](monitoring_results/f1_report.txt) (ala
 | Method | Location       | Area           |
 |--------|----------------|----------------|
 | UPCA   | 0.99 / 0.98 / 1.00 | 0.99 / 0.98 / 1.00 |
-| MPCA   | 1.00 / 1.00 / 1.00 | 1.00 / 1.00 / 1.00 |
-| TROD   | 0.99 / 0.98 / 1.00 | 0.99 / 0.98 / 1.00 |
+| Tucker (MPCA) | 1.00 / 1.00 / 1.00 | 1.00 / 1.00 / 1.00 |
+| CP (TROD) | 0.99 / 0.98 / 1.00 | 0.99 / 0.98 / 1.00 |
 
 **Asymmetric**
 
 | Method | Location       | Area           |
 |--------|----------------|----------------|
 | UPCA   | 1.00 / 1.00 / 1.00 | 0.97 / 1.00 / 0.94 |
-| MPCA   | 1.00 / 1.00 / 1.00 | **0.99 / 1.00 / 0.98** |
-| TROD   | 1.00 / 1.00 / 1.00 | 0.36 / 1.00 / 0.22 |
+| Tucker (MPCA) | 1.00 / 1.00 / 1.00 | **0.99 / 1.00 / 0.98** |
+| CP (TROD) | 1.00 / 1.00 / 1.00 | 0.36 / 1.00 / 0.22 |
 
-Consistent with the paper: **MPCA** performs best on asymmetric (location/color interaction) scenarios; TROD excels when the foreground is more symmetric.
+Consistent with the paper: **Tucker (MPCA)** performs best on asymmetric (location/color interaction) scenarios; **CP (TROD)** excels when the foreground is more symmetric.
 
 ### Control charts (T² and Q)
 
-Example charts for **Asymmetric / Location** and **Asymmetric / Area**:
+**Asymmetric — Location shift**
 
-- [Asymmetric_Location_UPCA_chart.png](monitoring_results/Asymmetric_Location_UPCA_chart.png)
-- [Asymmetric_Location_MPCA_chart.png](monitoring_results/Asymmetric_Location_MPCA_chart.png)
-- [Asymmetric_Location_TROD_chart.png](monitoring_results/Asymmetric_Location_TROD_chart.png)
-- [Asymmetric_Area_UPCA_chart.png](monitoring_results/Asymmetric_Area_UPCA_chart.png)
-- [Asymmetric_Area_MPCA_chart.png](monitoring_results/Asymmetric_Area_MPCA_chart.png)
-- [Asymmetric_Area_TROD_chart.png](monitoring_results/Asymmetric_Area_TROD_chart.png)
+| UPCA | Tucker (MPCA) | CP (TROD) |
+|------|---------------|-----------|
+| ![Asymmetric Location UPCA](monitoring_results/Asymmetric_Location_UPCA_chart.png) | ![Asymmetric Location Tucker MPCA](monitoring_results/Asymmetric_Location_Tucker_MPCA_chart.png) | ![Asymmetric Location CP TROD](monitoring_results/Asymmetric_Location_CP_TROD_chart.png) |
 
-Symmetric counterparts are in the same folder (e.g. `Symmetric_Location_UPCA_chart.png`, `Symmetric_Area_MPCA_chart.png`).
+**Asymmetric — Area change**
+
+| UPCA | Tucker (MPCA) | CP (TROD) |
+|------|---------------|-----------|
+| ![Asymmetric Area UPCA](monitoring_results/Asymmetric_Area_UPCA_chart.png) | ![Asymmetric Area Tucker MPCA](monitoring_results/Asymmetric_Area_Tucker_MPCA_chart.png) | ![Asymmetric Area CP TROD](monitoring_results/Asymmetric_Area_CP_TROD_chart.png) |
+
+All chart figures are in `monitoring_results/` (e.g. `Symmetric_Location_Tucker_MPCA_chart.png`, `Symmetric_Area_CP_TROD_chart.png`).
 
 ---
 
@@ -141,7 +159,7 @@ Symmetric counterparts are in the same folder (e.g. `Symmetric_Location_UPCA_cha
 ├── LICENSE
 ├── .gitignore
 ├── __init__.py
-├── tensor_monitoring.py      # UPCA, MPCA, TROD (paper methods)
+├── tensor_monitoring.py      # UPCA, Tucker (MPCA), CP (TROD) (paper methods)
 ├── tensor_decomposition_utils.py
 ├── tensor_anomaly_detection.py
 ├── tensordetect.py
