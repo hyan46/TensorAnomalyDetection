@@ -1,0 +1,5 @@
+# Anomaly Detection - Tensor-based methods
+numpy>=1.20
+scikit-learn>=1.0
+tensorly>=0.8
+matplotlib>=3.5
